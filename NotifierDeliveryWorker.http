@@ -1,0 +1,6 @@
+@NotifierDeliveryWorker_HostAddress = http://localhost:5107
+
+GET {{NotifierDeliveryWorker_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
