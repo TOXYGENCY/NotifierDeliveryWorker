@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <Folder Include="DeliveryWorker\Controllers\" />
+    <Folder Include="DeliveryWorker\Domain\Interfaces\" />
     <Folder Include="DeliveryWorker\Services\" />
   </ItemGroup>
 

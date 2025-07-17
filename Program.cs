@@ -1,10 +1,4 @@
-
-using Microsoft.Extensions.DependencyInjection;
 using NotifierDeliveryWorker.DeliveryWorker.Infrastructure;
-using NotifierNotificationService.NotificationService.Domain.Interfaces;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using System.Text;
 
 namespace NotifierDeliveryWorker
 {

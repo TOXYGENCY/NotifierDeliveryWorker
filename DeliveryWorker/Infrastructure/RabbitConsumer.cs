@@ -1,50 +1,81 @@
-﻿using NotifierNotificationService.NotificationService.Domain.Interfaces;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
-using System.Text.Unicode;
 
 namespace NotifierDeliveryWorker.DeliveryWorker.Infrastructure
 {
     public class RabbitConsumer : BackgroundService
     {
-        private readonly IConfiguration configuration;
+        private readonly IConfiguration config;
+        private string hostname;
+        private string username;
+        private string password;
+        private string queue;
+        private ConnectionFactory connectionFactory;
+        private IChannel channel;
+        private IConnection connection;
+        private AsyncEventingBasicConsumer consumer;
 
         public RabbitConsumer(IConfiguration configuration)
         {
-            this.configuration = configuration;
+            this.config = configuration;
+            hostname = config["RabbitMq:HostName"] ?? "rabbitmq";
+            username = config["RabbitMq:UserName"] ?? "admin";
+            password = config["RabbitMq:Password"] ?? "admin";
+            queue = config["RabbitMq:NotificationsQueueName"] ?? "notifications";
         }   
+
+        private async Task Init()
+        {
+            connectionFactory = new ConnectionFactory
+            {
+                HostName = hostname,
+                UserName = username,
+                Password = password
+            };
+
+            connection = await connectionFactory.CreateConnectionAsync();
+            channel = await connection.CreateChannelAsync();
+            consumer = new AsyncEventingBasicConsumer(channel);
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var connfact = new ConnectionFactory
-            {
-                HostName = configuration["RabbitMq:HostName"],
-                UserName = configuration["RabbitMq:UserName"],
-                Password = configuration["RabbitMq:Password"],
-            };
+            // Инициализация переменных соединений, каналов и тд
+            await Init();
 
-            using var conn = await connfact.CreateConnectionAsync();
-            using var channel = await conn.CreateChannelAsync();
-
-            await channel.QueueDeclareAsync(queue: "hello world", durable: false,
+            // Идемпотентное создание очереди (существует или нет - будет существовать)
+            await channel.QueueDeclareAsync(queue: queue, durable: false,
                 exclusive: false, autoDelete: false, arguments: null);
 
             Console.WriteLine(" [*] Waiting for messages.");
 
-            var consumer = new AsyncEventingBasicConsumer(channel);
-            consumer.ReceivedAsync += (model, ea) =>
+            // Подписываемся на событие получения сообщения
+            consumer.ReceivedAsync += async (model, eventArgs) =>
             {
-                var body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
-                Console.WriteLine($" [x] Received {message}");
-                return Task.CompletedTask;
+                // Обрабатываем полученное сообщение
+                await ProcessMessageAsync(eventArgs);
             };
 
-            await channel.BasicConsumeAsync("hello world", autoAck: true, consumer: consumer);
+            // Начинаем потребление сообщений из очереди
+            await channel.BasicConsumeAsync(queue, autoAck: true, consumer: consumer);
 
-            Console.WriteLine(" Press [enter] to exit.");
-            Console.ReadLine();
+            // Бесконечная работа:
+            while (!stoppingToken.IsCancellationRequested)
+                await Task.Delay(1000, stoppingToken);
+        }
+
+        private async Task ProcessMessageAsync(BasicDeliverEventArgs eventArgs)
+        {
+            var body = eventArgs.Body.ToArray(); // byte[]
+            var message = Encoding.UTF8.GetString(body); // string
+
+            Console.WriteLine($" [x] Received {message}");
+
+            //var notification = JsonSerializer.Deserialize<NotificationDto>(message);
+
+            // Имитация задержки обработки сообщений
+            await Task.Delay(new Random().Next(100, 1500));
         }
     }
 }
