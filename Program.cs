@@ -1,4 +1,6 @@
 using NotifierDeliveryWorker.DeliveryWorker.Infrastructure;
+using NotifierDeliveryWorker.DeliveryWorker.Interfaces;
+using NotifierDeliveryWorker.DeliveryWorker.Services;
 
 namespace NotifierDeliveryWorker
 {
@@ -14,6 +16,8 @@ namespace NotifierDeliveryWorker
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddHostedService<RabbitConsumer>();
+            builder.Services.AddTransient<IDeliveryManager, DeliveryManager>();
+            builder.Services.AddTransient<IRabbitPublisher, RabbitPublisher>();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();

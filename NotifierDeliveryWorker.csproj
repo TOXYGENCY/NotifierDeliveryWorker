@@ -14,10 +14,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DeliveryWorker\Controllers\" />
-    <Folder Include="DeliveryWorker\Domain\Interfaces\" />
-    <Folder Include="DeliveryWorker\Services\" />
-  </ItemGroup>
-
 </Project>

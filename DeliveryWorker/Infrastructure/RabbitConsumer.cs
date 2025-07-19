@@ -1,12 +1,16 @@
-﻿using RabbitMQ.Client;
+﻿using NotifierDeliveryWorker.DeliveryWorker.Models;
+using NotifierDeliveryWorker.DeliveryWorker.Services;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
+using System.Text.Json;
 
 namespace NotifierDeliveryWorker.DeliveryWorker.Infrastructure
 {
     public class RabbitConsumer : BackgroundService
     {
         private readonly IConfiguration config;
+        private readonly IDeliveryManager deliveryManager;
         private string hostname;
         private string username;
         private string password;
@@ -16,14 +20,15 @@ namespace NotifierDeliveryWorker.DeliveryWorker.Infrastructure
         private IConnection connection;
         private AsyncEventingBasicConsumer consumer;
 
-        public RabbitConsumer(IConfiguration configuration)
+        public RabbitConsumer(IConfiguration configuration, IDeliveryManager deliveryManager)
         {
             this.config = configuration;
             hostname = config["RabbitMq:HostName"] ?? "rabbitmq";
             username = config["RabbitMq:UserName"] ?? "admin";
             password = config["RabbitMq:Password"] ?? "admin";
             queue = config["RabbitMq:NotificationsQueueName"] ?? "notifications";
-        }   
+            this.deliveryManager = deliveryManager;
+        }
 
         private async Task Init()
         {
@@ -70,12 +75,10 @@ namespace NotifierDeliveryWorker.DeliveryWorker.Infrastructure
             var body = eventArgs.Body.ToArray(); // byte[]
             var message = Encoding.UTF8.GetString(body); // string
 
-            Console.WriteLine($" [x] Received {message}");
+            Console.WriteLine($" [v] Received {message}");
 
-            //var notification = JsonSerializer.Deserialize<NotificationDto>(message);
-
-            // Имитация задержки обработки сообщений
-            await Task.Delay(new Random().Next(100, 1500));
+            var notification = JsonSerializer.Deserialize<Notification>(message);
+            await deliveryManager.DeliverNotificationAsync(notification);
         }
     }
 }
