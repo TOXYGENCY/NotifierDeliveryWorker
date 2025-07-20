@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using NotifierDeliveryWorker.DeliveryWorker.Interfaces;
+﻿using NotifierDeliveryWorker.DeliveryWorker.Interfaces;
 using NotifierDeliveryWorker.DeliveryWorker.Models;
 
 namespace NotifierDeliveryWorker.DeliveryWorker.Services

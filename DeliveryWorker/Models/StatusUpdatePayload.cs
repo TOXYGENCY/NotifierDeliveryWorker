@@ -1,14 +1,17 @@
-﻿namespace NotifierDeliveryWorker.DeliveryWorker.Models
+﻿using System.Text.Json.Serialization;
+
+namespace NotifierDeliveryWorker.DeliveryWorker.Models
 {
     public class StatusUpdatePayload
     {
-        public Notification notification { get; set; }
-        public short newStatusId { get; set; }
+        public Notification Notification { get; set; }
+        public short NewStatusId { get; set; }
 
+        [JsonConstructor]
         public StatusUpdatePayload(Notification notification, short newStatusId)
         {
-            this.notification = notification;
-            this.newStatusId = newStatusId;
+            this.Notification = notification;
+            this.NewStatusId = newStatusId;
         }
     }
 }
